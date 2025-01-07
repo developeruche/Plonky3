@@ -10,7 +10,7 @@ use p3_field::{FieldAlgebra, Field, PackedField, PackedFieldPow2, PackedValue};
 use p3_util::convert_vec;
 use rand::distributions::{Distribution, Standard};
 use rand::Rng;
-use serde::{Deserialize, Serialize};
+// use serde::{Deserialize, Serialize};
 use crate::{FieldParameters, MontyField31, PackedMontyParameters};
 
 const WIDTH: usize = 4;
@@ -21,11 +21,7 @@ pub trait MontyParametersNeon {
 }
 
 /// Vectorized NEON implementation of `MontyField31` arithmetic.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(bound(
-    serialize = "MontyField31<PMP>: Serialize, [MontyField31<PMP>; WIDTH]: Serialize",
-    deserialize = "MontyField31<PMP>: Deserialize<'de>, [MontyField31<PMP>; WIDTH]: Deserialize<'de>"
-))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(transparent)] // This needed to make `transmute`s safe.
 pub struct PackedMontyField31Neon<PMP: PackedMontyParameters>(pub [MontyField31<PMP>; WIDTH]);
 
