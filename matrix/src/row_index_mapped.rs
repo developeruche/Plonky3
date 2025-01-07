@@ -25,7 +25,7 @@ pub trait RowIndexMap: Send + Sync {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct RowIndexMappedView<IndexMap, Inner> {
     pub index_map: IndexMap,
     pub inner: Inner,
@@ -73,8 +73,8 @@ impl<T: Send + Sync, IndexMap: RowIndexMap, Inner: Matrix<T>> Matrix<T>
         &'a self,
         r: usize,
     ) -> (
-        impl Iterator<Item = P>,
-        impl Iterator<Item = T>,
+        impl Iterator<Item = P> + Send + Sync,
+        impl Iterator<Item = T> + Send + Sync,
     )
     where
         P: PackedValue<Value = T>,

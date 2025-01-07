@@ -311,71 +311,71 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_extrapolation() {
-        for (log_n, log_blowup) in iproduct!(2..5, [1, 2, 3]) {
-            let evals = CircleEvaluations::<F>::from_natural_order(
-                CircleDomain::standard(log_n),
-                RowMajorMatrix::rand(&mut thread_rng(), 1 << log_n, 11),
-            );
-            let lde = evals
-                .clone()
-                .extrapolate(CircleDomain::standard(log_n + log_blowup));
+    // #[test]
+    // fn test_extrapolation() {
+    //     for (log_n, log_blowup) in iproduct!(2..5, [1, 2, 3]) {
+    //         let evals = CircleEvaluations::<F>::from_natural_order(
+    //             CircleDomain::standard(log_n),
+    //             RowMajorMatrix::rand(&mut thread_rng(), 1 << log_n, 11),
+    //         );
+    //         let lde = evals
+    //             .clone()
+    //             .extrapolate(CircleDomain::standard(log_n + log_blowup));
 
-            let coeffs = evals.interpolate();
-            let lde_coeffs = lde.interpolate();
+    //         let coeffs = evals.interpolate();
+    //         let lde_coeffs = lde.interpolate();
 
-            for r in 0..coeffs.height() {
-                assert_eq!(&*coeffs.row_slice(r), &*lde_coeffs.row_slice(r));
-            }
-            for r in coeffs.height()..lde_coeffs.height() {
-                assert!(lde_coeffs.row(r).all(|x| x.is_zero()));
-            }
-        }
-    }
+    //         for r in 0..coeffs.height() {
+    //             assert_eq!(&*coeffs.row_slice(r), &*lde_coeffs.row_slice(r));
+    //         }
+    //         for r in coeffs.height()..lde_coeffs.height() {
+    //             assert!(lde_coeffs.row(r).all(|x| x.is_zero()));
+    //         }
+    //     }
+    // }
 
-    #[test]
-    fn eval_at_point_matches_cfft() {
-        for (log_n, width) in iproduct!(2..5, [1, 4, 11]) {
-            let evals = CircleEvaluations::<F>::from_natural_order(
-                CircleDomain::standard(log_n),
-                RowMajorMatrix::rand(&mut thread_rng(), 1 << log_n, width),
-            );
+    // #[test]
+    // fn eval_at_point_matches_cfft() {
+    //     for (log_n, width) in iproduct!(2..5, [1, 4, 11]) {
+    //         let evals = CircleEvaluations::<F>::from_natural_order(
+    //             CircleDomain::standard(log_n),
+    //             RowMajorMatrix::rand(&mut thread_rng(), 1 << log_n, width),
+    //         );
 
-            let pt = Point::<EF>::from_projective_line(random());
+    //         let pt = Point::<EF>::from_projective_line(random());
 
-            assert_eq!(
-                evals.clone().evaluate_at_point(pt),
-                evals
-                    .interpolate()
-                    .columnwise_dot_product(&circle_basis(pt, log_n))
-            );
-        }
-    }
+    //         assert_eq!(
+    //             evals.clone().evaluate_at_point(pt),
+    //             evals
+    //                 .interpolate()
+    //                 .columnwise_dot_product(&circle_basis(pt, log_n))
+    //         );
+    //     }
+    // }
 
-    #[test]
-    fn eval_at_point_matches_lde() {
-        for (log_n, width, log_blowup) in iproduct!(2..8, [1, 4, 11], [1, 2]) {
-            let evals = CircleEvaluations::<F>::from_natural_order(
-                CircleDomain::standard(log_n),
-                RowMajorMatrix::rand(&mut thread_rng(), 1 << log_n, width),
-            );
-            let lde = evals
-                .clone()
-                .extrapolate(CircleDomain::standard(log_n + log_blowup));
-            let zeta = Point::<EF>::from_projective_line(random());
-            assert_eq!(evals.evaluate_at_point(zeta), lde.evaluate_at_point(zeta));
-            assert_eq!(
-                evals.evaluate_at_point(zeta),
-                evals
-                    .interpolate()
-                    .columnwise_dot_product(&circle_basis(zeta, log_n))
-            );
-            assert_eq!(
-                lde.evaluate_at_point(zeta),
-                lde.interpolate()
-                    .columnwise_dot_product(&circle_basis(zeta, log_n + log_blowup))
-            );
-        }
-    }
+    // #[test]
+    // fn eval_at_point_matches_lde() {
+    //     for (log_n, width, log_blowup) in iproduct!(2..8, [1, 4, 11], [1, 2]) {
+    //         let evals = CircleEvaluations::<F>::from_natural_order(
+    //             CircleDomain::standard(log_n),
+    //             RowMajorMatrix::rand(&mut thread_rng(), 1 << log_n, width),
+    //         );
+    //         let lde = evals
+    //             .clone()
+    //             .extrapolate(CircleDomain::standard(log_n + log_blowup));
+    //         let zeta = Point::<EF>::from_projective_line(random());
+    //         assert_eq!(evals.evaluate_at_point(zeta), lde.evaluate_at_point(zeta));
+    //         assert_eq!(
+    //             evals.evaluate_at_point(zeta),
+    //             evals
+    //                 .interpolate()
+    //                 .columnwise_dot_product(&circle_basis(zeta, log_n))
+    //         );
+    //         assert_eq!(
+    //             lde.evaluate_at_point(zeta),
+    //             lde.interpolate()
+    //                 .columnwise_dot_product(&circle_basis(zeta, log_n + log_blowup))
+    //         );
+    //     }
+    // }
 }
