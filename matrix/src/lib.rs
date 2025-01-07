@@ -5,6 +5,7 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
+use serde::{Deserialize, Serialize};
 use core::fmt::{Debug, Display, Formatter};
 use core::ops::Deref;
 
@@ -28,7 +29,7 @@ pub mod stack;
 pub mod strided;
 pub mod util;
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Dimensions {
     pub width: usize,
     pub height: usize,
