@@ -52,6 +52,12 @@ pub struct CircleInputProof<
     first_layer_proof: FriMmcs::Proof,
 }
 
+#[derive(Debug, Clone)]
+pub struct ProverData<Val, MmcsData> {
+    committed_domains: Vec<CircleDomain<Val>>,
+    mmcs_data: MmcsData,
+}
+
 #[derive(Debug)]
 pub enum InputError<InputMmcsError, FriMmcsError> {
     InputMmcsError(InputMmcsError),
@@ -88,10 +94,12 @@ where
     InputMmcs: Mmcs<Val>,
     FriMmcs: Mmcs<Challenge>,
     Challenger: FieldChallenger<Val> + GrindingChallenger + CanObserve<FriMmcs::Commitment>,
+    <InputMmcs as Mmcs<Val>>::ProverData<RowMajorMatrix<Val>>: Clone,
 {
     type Domain = CircleDomain<Val>;
     type Commitment = InputMmcs::Commitment;
     type ProverData = InputMmcs::ProverData<RowMajorMatrix<Val>>;
+    // type ProverData = ProverData<Val, InputMmcs::ProverData<RowMajorMatrix<Val>>>;
     type Proof = CirclePcsProof<Val, Challenge, InputMmcs, FriMmcs, Challenger::Witness>;
     type Error = FriError<FriMmcs::Error>;
 

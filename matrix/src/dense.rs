@@ -382,8 +382,8 @@ impl<T: Clone + Send + Sync, S: DenseStorage<T>> Matrix<T> for DenseMatrix<T, S>
         &'a self,
         r: usize,
     ) -> (
-        impl Iterator<Item = P> + Send + Sync,
-        impl Iterator<Item = T> + Send + Sync,
+        impl Iterator<Item = P>,
+        impl Iterator<Item = T>,
     )
     where
         P: PackedValue<Value = T>,

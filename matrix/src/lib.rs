@@ -104,8 +104,8 @@ pub trait Matrix<T: Send + Sync>: Send + Sync {
         &'a self,
         r: usize,
     ) -> (
-        impl Iterator<Item = P> + Send + Sync,
-        impl Iterator<Item = T> + Send + Sync,
+        impl Iterator<Item = P>,
+        impl Iterator<Item = T>,
     )
     where
         P: PackedValue<Value = T>,
@@ -136,8 +136,8 @@ pub trait Matrix<T: Send + Sync>: Send + Sync {
         &'a self,
     ) -> impl IndexedParallelIterator<
         Item = (
-            impl Iterator<Item = P> + Send + Sync,
-            impl Iterator<Item = T> + Send + Sync,
+            impl Iterator<Item = P>,
+            impl Iterator<Item = T>,
         ),
     >
     where
