@@ -6,10 +6,12 @@ use p3_commit::ExtensionMmcs;
 use p3_field::extension::BinomialExtensionField;
 use p3_fri::{FriConfig, TwoAdicFriPcs};
 use p3_keccak::{Keccak256Hash, KeccakF};
+use p3_matrix::Matrix;
 use p3_merkle_tree::MerkleTreeHidingMmcs;
 use p3_poseidon2_air::{generate_vectorized_trace_rows, RoundConstants, VectorizedPoseidon2Air};
 use p3_symmetric::{CompressionFunctionFromHasher, PaddingFreeSponge, SerializingHasher32To64};
 use p3_uni_stark::{prove, verify, StarkConfig};
+use p3_util::log2_ceil_usize;
 use rand::rngs::ThreadRng;
 use rand::{random, thread_rng};
 #[cfg(not(target_env = "msvc"))]
@@ -110,7 +112,7 @@ fn main() -> Result<(), impl Debug> {
         mmcs: challenge_mmcs,
     };
     type Pcs = TwoAdicFriPcs<Val, Dft, ValMmcs, ChallengeMmcs>;
-    let pcs = Pcs::new(dft, val_mmcs, fri_config);
+    let pcs = Pcs::new(log2_ceil_usize(trace.height()), dft, val_mmcs, fri_config);
 
     type MyConfig = StarkConfig<Pcs, Challenge, Challenger>;
     let config = MyConfig::new(pcs);

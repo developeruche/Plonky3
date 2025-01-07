@@ -7,10 +7,12 @@ use p3_dft::Radix2DitParallel;
 use p3_field::extension::BinomialExtensionField;
 use p3_fri::{FriConfig, TwoAdicFriPcs};
 use p3_keccak_air::{generate_trace_rows, KeccakAir};
+use p3_matrix::Matrix;
 use p3_merkle_tree::MerkleTreeMmcs;
 use p3_sha256::Sha256;
 use p3_symmetric::{CompressionFunctionFromHasher, SerializingHasher32};
 use p3_uni_stark::{prove, verify, StarkConfig};
+use p3_util::log2_ceil_usize;
 use rand::random;
 use tracing_forest::util::LevelFilter;
 use tracing_forest::ForestLayer;
@@ -62,7 +64,7 @@ fn main() -> Result<(), impl Debug> {
         mmcs: challenge_mmcs,
     };
     type Pcs = TwoAdicFriPcs<Val, Dft, ValMmcs, ChallengeMmcs>;
-    let pcs = Pcs::new(dft, val_mmcs, fri_config);
+    let pcs = Pcs::new(log2_ceil_usize(trace.height()), dft, val_mmcs, fri_config);
 
     type MyConfig = StarkConfig<Pcs, Challenge, Challenger>;
     let config = MyConfig::new(pcs);

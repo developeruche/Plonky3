@@ -1,38 +1,41 @@
 use alloc::vec;
 use alloc::vec::Vec;
 
-use itertools::{izip, Itertools};
+use itertools::izip;
 use p3_challenger::{CanObserve, FieldChallenger, GrindingChallenger};
 use p3_commit::Mmcs;
-use p3_field::{ExtensionField, Field};
+use p3_field::{ExtensionField, Field, TwoAdicField};
 use p3_matrix::Dimensions;
+use p3_util::reverse_bits_len;
 
-use crate::{CommitPhaseProofStep, FriConfig, FriGenericConfig, FriProof};
+use crate::{FriConfig, FriProof, QueryProof};
 
 #[derive(Debug)]
-pub enum FriError<CommitMmcsErr, InputError> {
+pub enum FriError<CommitMmcsErr> {
     InvalidProofShape,
     CommitPhaseMmcsError(CommitMmcsErr),
-    InputError(InputError),
     FinalPolyMismatch,
     InvalidPowWitness,
 }
 
-pub fn verify<G, Val, Challenge, M, Challenger>(
-    g: &G,
+#[derive(Debug)]
+pub struct FriChallenges<F> {
+    pub query_indices: Vec<usize>,
+    pub betas: Vec<F>,
+}
+
+pub fn verify_shape_and_sample_challenges<F, EF, M, Challenger>(
     config: &FriConfig<M>,
-    proof: &FriProof<Challenge, M, Challenger::Witness, G::InputProof>,
+    proof: &FriProof<EF, M, Challenger::Witness>,
     challenger: &mut Challenger,
-    open_input: impl Fn(usize, &G::InputProof) -> Result<Vec<(usize, Challenge)>, G::InputError>,
-) -> Result<(), FriError<M::Error, G::InputError>>
+) -> Result<FriChallenges<EF>, FriError<M::Error>>
 where
-    Val: Field,
-    Challenge: ExtensionField<Val>,
-    M: Mmcs<Challenge>,
-    Challenger: FieldChallenger<Val> + GrindingChallenger + CanObserve<M::Commitment>,
-    G: FriGenericConfig<Challenge>,
+    F: Field,
+    EF: ExtensionField<F>,
+    M: Mmcs<EF>,
+    Challenger: GrindingChallenger + CanObserve<M::Commitment> + FieldChallenger<F>,
 {
-    let betas: Vec<Challenge> = proof
+    let betas: Vec<EF> = proof
         .commit_phase_commits
         .iter()
         .map(|comm| {
@@ -41,7 +44,6 @@ where
         })
         .collect();
     challenger.observe_ext_element(proof.final_poly);
-
     if proof.query_proofs.len() != config.num_queries {
         return Err(FriError::InvalidProofShape);
     }
@@ -53,24 +55,38 @@ where
 
     let log_max_height = proof.commit_phase_commits.len() + config.log_blowup;
 
-    for qp in &proof.query_proofs {
-        let index = challenger.sample_bits(log_max_height + g.extra_query_index_bits());
-        let ro = open_input(index, &qp.input_proof).map_err(FriError::InputError)?;
+    let query_indices: Vec<usize> = (0..config.num_queries)
+        .map(|_| challenger.sample_bits(log_max_height))
+        .collect();
 
-        debug_assert!(
-            ro.iter().tuple_windows().all(|((l, _), (r, _))| l > r),
-            "reduced openings sorted by height descending"
-        );
+    Ok(FriChallenges {
+        query_indices,
+        betas,
+    })
+}
 
+pub fn verify_challenges<F, M, Witness>(
+    config: &FriConfig<M>,
+    proof: &FriProof<F, M, Witness>,
+    challenges: &FriChallenges<F>,
+    reduced_openings: &[[F; 32]],
+) -> Result<(), FriError<M::Error>>
+where
+    F: TwoAdicField,
+    M: Mmcs<F>,
+{
+    let log_max_height = proof.commit_phase_commits.len() + config.log_blowup;
+    for (&index, query_proof, ro) in izip!(
+        &challenges.query_indices,
+        &proof.query_proofs,
+        reduced_openings
+    ) {
         let folded_eval = verify_query(
-            g,
             config,
-            index >> g.extra_query_index_bits(),
-            izip!(
-                &betas,
-                &proof.commit_phase_commits,
-                &qp.commit_phase_openings
-            ),
+            &proof.commit_phase_commits,
+            index,
+            query_proof,
+            &challenges.betas,
             ro,
             log_max_height,
         )?;
@@ -83,38 +99,36 @@ where
     Ok(())
 }
 
-type CommitStep<'a, F, M> = (
-    &'a F,
-    &'a <M as Mmcs<F>>::Commitment,
-    &'a CommitPhaseProofStep<F, M>,
-);
-
-fn verify_query<'a, G, F, M>(
-    g: &G,
+fn verify_query<F, M>(
     config: &FriConfig<M>,
+    commit_phase_commits: &[M::Commitment],
     mut index: usize,
-    steps: impl Iterator<Item = CommitStep<'a, F, M>>,
-    reduced_openings: Vec<(usize, F)>,
+    proof: &QueryProof<F, M>,
+    betas: &[F],
+    reduced_openings: &[F; 32],
     log_max_height: usize,
-) -> Result<F, FriError<M::Error, G::InputError>>
+) -> Result<F, FriError<M::Error>>
 where
-    F: Field,
-    M: Mmcs<F> + 'a,
-    G: FriGenericConfig<F>,
+    F: TwoAdicField,
+    M: Mmcs<F>,
 {
     let mut folded_eval = F::ZERO;
-    let mut ro_iter = reduced_openings.into_iter().peekable();
+    let mut x = F::two_adic_generator(log_max_height)
+        .exp_u64(reverse_bits_len(index, log_max_height) as u64);
 
-    for (log_folded_height, (&beta, comm, opening)) in izip!((0..log_max_height).rev(), steps) {
-        if let Some((_, ro)) = ro_iter.next_if(|(lh, _)| *lh == log_folded_height + 1) {
-            folded_eval += ro;
-        }
+    for (log_folded_height, commit, step, &beta) in izip!(
+        (0..log_max_height).rev(),
+        commit_phase_commits,
+        &proof.commit_phase_openings,
+        betas,
+    ) {
+        folded_eval += reduced_openings[log_folded_height + 1];
 
         let index_sibling = index ^ 1;
         let index_pair = index >> 1;
 
         let mut evals = vec![folded_eval; 2];
-        evals[index_sibling % 2] = opening.sibling_value;
+        evals[index_sibling % 2] = step.sibling_value;
 
         let dims = &[Dimensions {
             width: 2,
@@ -123,24 +137,25 @@ where
         config
             .mmcs
             .verify_batch(
-                comm,
+                commit,
                 dims,
                 index_pair,
                 &[evals.clone()],
-                &opening.opening_proof,
+                &step.opening_proof,
             )
             .map_err(FriError::CommitPhaseMmcsError)?;
 
-        index = index_pair;
+        let mut xs = [x; 2];
+        xs[index_sibling % 2] *= F::two_adic_generator(1);
+        // interpolate and evaluate at beta
+        folded_eval = evals[0] + (beta - xs[0]) * (evals[1] - evals[0]) / (xs[1] - xs[0]);
 
-        folded_eval = g.fold_row(index, log_folded_height, beta, evals.into_iter());
+        index = index_pair;
+        x = x.square();
     }
 
     debug_assert!(index < config.blowup(), "index was {}", index);
-    debug_assert!(
-        ro_iter.next().is_none(),
-        "verifier reduced_openings were not in descending order?"
-    );
+    debug_assert_eq!(x.exp_power_of_2(config.log_blowup), F::ONE);
 
     Ok(folded_eval)
 }

@@ -12,6 +12,7 @@ use p3_merkle_tree::MerkleTreeMmcs;
 use p3_monty_31::dft::RecursiveDft;
 use p3_symmetric::{CompressionFunctionFromHasher, SerializingHasher32};
 use p3_uni_stark::{prove, verify, StarkConfig};
+use p3_util::log2_ceil_usize;
 use rand::random;
 use tracing_forest::util::LevelFilter;
 use tracing_forest::ForestLayer;
@@ -63,7 +64,7 @@ fn main() -> Result<(), impl Debug> {
     let dft = Dft::new(trace.height() << fri_config.log_blowup);
 
     type Pcs = TwoAdicFriPcs<Val, Dft, ValMmcs, ChallengeMmcs>;
-    let pcs = Pcs::new(dft, val_mmcs, fri_config);
+    let pcs = Pcs::new(log2_ceil_usize(trace.height()),dft, val_mmcs, fri_config);
 
     type MyConfig = StarkConfig<Pcs, Challenge, Challenger>;
     let config = MyConfig::new(pcs);

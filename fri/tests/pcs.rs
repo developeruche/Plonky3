@@ -183,7 +183,7 @@ mod babybear_fri_pcs {
             mmcs: challenge_mmcs,
         };
 
-        let pcs = MyPcs::new(Dft::default(), val_mmcs, fri_config);
+        let pcs = MyPcs::new(log_blowup, Dft::default(), val_mmcs, fri_config);
         (pcs, Challenger::new(perm.clone()))
     }
 

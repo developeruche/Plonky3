@@ -17,7 +17,7 @@ pub fn verify<G, Val, Challenge, M, Challenger>(
     proof: &CircleFriProof<Challenge, M, Challenger::Witness, G::InputProof>,
     challenger: &mut Challenger,
     open_input: impl Fn(usize, &G::InputProof) -> Result<Vec<(usize, Challenge)>, G::InputError>,
-) -> Result<(), FriError<M::Error, G::InputError>>
+) -> Result<(), FriError<M::Error>>
 where
     Val: Field,
     Challenge: ExtensionField<Val>,
@@ -48,7 +48,7 @@ where
 
     for qp in &proof.query_proofs {
         let index = challenger.sample_bits(log_max_height + g.extra_query_index_bits());
-        let ro = open_input(index, &qp.input_proof).map_err(FriError::InputError)?;
+        let ro = open_input(index, &qp.input_proof).expect("input error");
 
         debug_assert!(
             ro.iter().tuple_windows().all(|((l, _), (r, _))| l > r),
@@ -89,7 +89,7 @@ fn verify_query<'a, G, F, M>(
     steps: impl Iterator<Item = CommitStep<'a, F, M>>,
     reduced_openings: Vec<(usize, F)>,
     log_max_height: usize,
-) -> Result<F, FriError<M::Error, G::InputError>>
+) -> Result<F, FriError<M::Error>>
 where
     F: Field,
     M: Mmcs<F> + 'a,

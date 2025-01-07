@@ -13,6 +13,7 @@ use p3_matrix::Matrix;
 use p3_merkle_tree::MerkleTreeMmcs;
 use p3_symmetric::{PaddingFreeSponge, TruncatedPermutation};
 use p3_uni_stark::{prove, verify, StarkConfig};
+use p3_util::log2_ceil_usize;
 use rand::thread_rng;
 
 /// For testing the public values feature
@@ -126,7 +127,7 @@ fn test_public_value_impl(n: usize, x: u64) {
         proof_of_work_bits: 8,
         mmcs: challenge_mmcs,
     };
-    let pcs = Pcs::new(dft, val_mmcs, fri_config);
+    let pcs = Pcs::new(log2_ceil_usize(trace.height()),dft, val_mmcs, fri_config);
     let config = MyConfig::new(pcs);
     let mut challenger = Challenger::new(perm.clone());
     let pis = vec![
@@ -166,7 +167,7 @@ fn test_incorrect_public_value() {
         mmcs: challenge_mmcs,
     };
     let trace = generate_trace_rows::<Val>(0, 1, 1 << 3);
-    let pcs = Pcs::new(dft, val_mmcs, fri_config);
+    let pcs = Pcs::new(log2_ceil_usize(trace.height()), dft, val_mmcs, fri_config);
     let config = MyConfig::new(pcs);
     let mut challenger = Challenger::new(perm.clone());
     let pis = vec![
