@@ -10,7 +10,7 @@ use p3_field::{FieldAlgebra, Field, PackedField, PackedFieldPow2, PackedValue};
 use p3_util::convert_vec;
 use rand::distributions::{Distribution, Standard};
 use rand::Rng;
-// use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use crate::{FieldParameters, MontyField31, PackedMontyParameters};
 
 const WIDTH: usize = 4;
@@ -21,11 +21,11 @@ pub trait MontyParametersNeon {
 }
 
 /// Vectorized NEON implementation of `MontyField31` arithmetic.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(transparent)] // This needed to make `transmute`s safe.
-pub struct PackedMontyField31Neon<PMP: PackedMontyParameters>(pub [MontyField31<PMP>; WIDTH]);
+pub struct PackedMontyField31Neon<PMP: PackedMontyParameters + FieldParameters>(pub [MontyField31<PMP>; WIDTH]);
 
-impl<PMP: PackedMontyParameters> PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> PackedMontyField31Neon<PMP> {
     #[inline]
     #[must_use]
     /// Get an arch-specific vector representing the packed values.
@@ -65,7 +65,7 @@ impl<PMP: PackedMontyParameters> PackedMontyField31Neon<PMP> {
     }
 }
 
-impl<PMP: PackedMontyParameters> Add for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> Add for PackedMontyField31Neon<PMP> {
     type Output = Self;
     #[inline]
     fn add(self, rhs: Self) -> Self {
@@ -79,7 +79,7 @@ impl<PMP: PackedMontyParameters> Add for PackedMontyField31Neon<PMP> {
     }
 }
 
-impl<PMP: PackedMontyParameters> Mul for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> Mul for PackedMontyField31Neon<PMP> {
     type Output = Self;
     #[inline]
     fn mul(self, rhs: Self) -> Self {
@@ -93,7 +93,7 @@ impl<PMP: PackedMontyParameters> Mul for PackedMontyField31Neon<PMP> {
     }
 }
 
-impl<PMP: PackedMontyParameters> Neg for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> Neg for PackedMontyField31Neon<PMP> {
     type Output = Self;
     #[inline]
     fn neg(self) -> Self {
@@ -106,7 +106,7 @@ impl<PMP: PackedMontyParameters> Neg for PackedMontyField31Neon<PMP> {
     }
 }
 
-impl<PMP: PackedMontyParameters> Sub for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> Sub for PackedMontyField31Neon<PMP> {
     type Output = Self;
     #[inline]
     fn sub(self, rhs: Self) -> Self {
@@ -387,35 +387,35 @@ fn sub<MPNeon: MontyParametersNeon>(lhs: uint32x4_t, rhs: uint32x4_t) -> uint32x
     }
 }
 
-impl<PMP: PackedMontyParameters> From<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> From<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
     #[inline]
     fn from(value: MontyField31<PMP>) -> Self {
         Self::broadcast(value)
     }
 }
 
-impl<PMP: PackedMontyParameters> Default for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> Default for PackedMontyField31Neon<PMP> {
     #[inline]
     fn default() -> Self {
         MontyField31::<PMP>::default().into()
     }
 }
 
-impl<PMP: PackedMontyParameters> AddAssign for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> AddAssign for PackedMontyField31Neon<PMP> {
     #[inline]
     fn add_assign(&mut self, rhs: Self) {
         *self = *self + rhs;
     }
 }
 
-impl<PMP: PackedMontyParameters> MulAssign for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> MulAssign for PackedMontyField31Neon<PMP> {
     #[inline]
     fn mul_assign(&mut self, rhs: Self) {
         *self = *self * rhs;
     }
 }
 
-impl<PMP: PackedMontyParameters> SubAssign for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> SubAssign for PackedMontyField31Neon<PMP> {
     #[inline]
     fn sub_assign(&mut self, rhs: Self) {
         *self = *self - rhs;
@@ -506,7 +506,7 @@ impl<FP: FieldParameters> FieldAlgebra for PackedMontyField31Neon<FP> {
     }
 }
 
-impl<PMP: PackedMontyParameters> Add<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> Add<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
     type Output = Self;
     #[inline]
     fn add(self, rhs: MontyField31<PMP>) -> Self {
@@ -514,7 +514,7 @@ impl<PMP: PackedMontyParameters> Add<MontyField31<PMP>> for PackedMontyField31Ne
     }
 }
 
-impl<PMP: PackedMontyParameters> Mul<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> Mul<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
     type Output = Self;
     #[inline]
     fn mul(self, rhs: MontyField31<PMP>) -> Self {
@@ -522,7 +522,7 @@ impl<PMP: PackedMontyParameters> Mul<MontyField31<PMP>> for PackedMontyField31Ne
     }
 }
 
-impl<PMP: PackedMontyParameters> Sub<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> Sub<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
     type Output = Self;
     #[inline]
     fn sub(self, rhs: MontyField31<PMP>) -> Self {
@@ -530,21 +530,21 @@ impl<PMP: PackedMontyParameters> Sub<MontyField31<PMP>> for PackedMontyField31Ne
     }
 }
 
-impl<PMP: PackedMontyParameters> AddAssign<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> AddAssign<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
     #[inline]
     fn add_assign(&mut self, rhs: MontyField31<PMP>) {
         *self += Self::from(rhs)
     }
 }
 
-impl<PMP: PackedMontyParameters> MulAssign<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> MulAssign<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
     #[inline]
     fn mul_assign(&mut self, rhs: MontyField31<PMP>) {
         *self *= Self::from(rhs)
     }
 }
 
-impl<PMP: PackedMontyParameters> SubAssign<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> SubAssign<MontyField31<PMP>> for PackedMontyField31Neon<PMP> {
     #[inline]
     fn sub_assign(&mut self, rhs: MontyField31<PMP>) {
         *self -= Self::from(rhs)
@@ -580,7 +580,7 @@ impl<FP: FieldParameters> Div<MontyField31<FP>> for PackedMontyField31Neon<FP> {
     }
 }
 
-impl<PMP: PackedMontyParameters> Add<PackedMontyField31Neon<PMP>> for MontyField31<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> Add<PackedMontyField31Neon<PMP>> for MontyField31<PMP> {
     type Output = PackedMontyField31Neon<PMP>;
     #[inline]
     fn add(self, rhs: PackedMontyField31Neon<PMP>) -> PackedMontyField31Neon<PMP> {
@@ -588,7 +588,7 @@ impl<PMP: PackedMontyParameters> Add<PackedMontyField31Neon<PMP>> for MontyField
     }
 }
 
-impl<PMP: PackedMontyParameters> Mul<PackedMontyField31Neon<PMP>> for MontyField31<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> Mul<PackedMontyField31Neon<PMP>> for MontyField31<PMP> {
     type Output = PackedMontyField31Neon<PMP>;
     #[inline]
     fn mul(self, rhs: PackedMontyField31Neon<PMP>) -> PackedMontyField31Neon<PMP> {
@@ -596,7 +596,7 @@ impl<PMP: PackedMontyParameters> Mul<PackedMontyField31Neon<PMP>> for MontyField
     }
 }
 
-impl<PMP: PackedMontyParameters> Sub<PackedMontyField31Neon<PMP>> for MontyField31<PMP> {
+impl<PMP: PackedMontyParameters + FieldParameters> Sub<PackedMontyField31Neon<PMP>> for MontyField31<PMP> {
     type Output = PackedMontyField31Neon<PMP>;
     #[inline]
     fn sub(self, rhs: PackedMontyField31Neon<PMP>) -> PackedMontyField31Neon<PMP> {
@@ -604,7 +604,7 @@ impl<PMP: PackedMontyParameters> Sub<PackedMontyField31Neon<PMP>> for MontyField
     }
 }
 
-impl<PMP: PackedMontyParameters> Distribution<PackedMontyField31Neon<PMP>> for Standard {
+impl<PMP: PackedMontyParameters + FieldParameters> Distribution<PackedMontyField31Neon<PMP>> for Standard {
     #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> PackedMontyField31Neon<PMP> {
         PackedMontyField31Neon::<PMP>(rng.gen())
