@@ -63,7 +63,7 @@ pub type GenericPoseidon2LinearLayersBabyBear =
 
 /// The vector `[-2, 1, 2, 1/2, 3, 4, -1/2, -3, -4, 1/2^8, 1/4, 1/8, 1/2^27, -1/2^8, -1/16, -1/2^27]`
 /// saved as an array of BabyBear elements.
-const INTERNAL_DIAG_MONTY_16: [BabyBear; 16] = BabyBear::new_array([
+pub const INTERNAL_DIAG_MONTY_16: [BabyBear; 16] = BabyBear::new_array([
     BabyBear::ORDER_U32 - 2,
     1,
     2,
@@ -82,9 +82,11 @@ const INTERNAL_DIAG_MONTY_16: [BabyBear; 16] = BabyBear::new_array([
     15,
 ]);
 
+pub const MONTY_INVERSE: BabyBear = BabyBear::new(1);
+
 /// The vector [-2, 1, 2, 1/2, 3, 4, -1/2, -3, -4, 1/2^8, 1/4, 1/8, 1/16, 1/2^7, 1/2^9, 1/2^27, -1/2^8, -1/4, -1/8, -1/16, -1/32, -1/64, -1/2^7, -1/2^27]
 /// saved as an array of BabyBear elements.
-const INTERNAL_DIAG_MONTY_24: [BabyBear; 24] = BabyBear::new_array([
+pub const INTERNAL_DIAG_MONTY_24: [BabyBear; 24] = BabyBear::new_array([
     BabyBear::ORDER_U32 - 2,
     1,
     2,
