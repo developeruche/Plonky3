@@ -20,7 +20,7 @@ pub fn verify<SC, A>(
     challenger: &mut SC::Challenger,
     proof: &Proof<SC>,
     public_values: &Vec<Val<SC>>,
-) -> Result<(), VerificationError<PcsError<SC>>>
+) -> Result<(), VerificationError>
 where
     SC: StarkGenericConfig,
     A: Air<SymbolicAirBuilder<Val<SC>>> + for<'a> Air<VerifierConstraintFolder<'a, SC>>,
@@ -94,7 +94,7 @@ where
         opening_proof,
         challenger,
     )
-    .map_err(VerificationError::InvalidOpeningArgument)?;
+    .map_err(|_| VerificationError::InvalidOpeningArgument)?;
 
     let zps = quotient_chunks_domains
         .iter()
@@ -153,10 +153,10 @@ where
 }
 
 #[derive(Debug)]
-pub enum VerificationError<PcsErr> {
+pub enum VerificationError {
     InvalidProofShape,
     /// An error occurred while verifying the claimed openings.
-    InvalidOpeningArgument(PcsErr),
+    InvalidOpeningArgument,
     /// Out-of-domain evaluation mismatch, i.e. `constraints(zeta)` did not match
     /// `quotient(zeta) Z_H(zeta)`.
     OodEvaluationMismatch,
