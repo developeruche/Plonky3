@@ -10,7 +10,11 @@ use serde::{Deserialize, Serialize};
 use crate::{FieldParameters, InternalLayerBaseParameters, MontyField31, MontyParameters};
 
 /// The internal layers of the Poseidon2 permutation for Monty31 fields.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(bound(
+    serialize = "MontyField31<MP>: Serialize, Vec<MontyField31<MP>>: Serialize",
+    deserialize = "MontyField31<MP>: Deserialize<'de>, Vec<MontyField31<MP>>: Deserialize<'de>"
+))]
 pub struct Poseidon2InternalLayerMonty31<
     MP: MontyParameters,
     const WIDTH: usize,
