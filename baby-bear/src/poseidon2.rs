@@ -21,6 +21,7 @@ use p3_monty_31::{
     MontyField31, Poseidon2ExternalLayerMonty31, Poseidon2InternalLayerMonty31,
 };
 use p3_poseidon2::Poseidon2;
+use serde::{Deserialize, Serialize};
 
 use crate::{BabyBear, BabyBearParameters};
 
@@ -114,7 +115,7 @@ pub const INTERNAL_DIAG_MONTY_24: [BabyBear; 24] = BabyBear::new_array([
 ]);
 
 /// Contains data needed to define the internal layers of the Poseidon2 permutation.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct BabyBearInternalLayerParameters;
 
 impl InternalLayerBaseParameters<BabyBearParameters, 16> for BabyBearInternalLayerParameters {
