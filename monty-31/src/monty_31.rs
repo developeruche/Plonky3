@@ -144,13 +144,13 @@ impl<FP: MontyParameters> Distribution<MontyField31<FP>> for Standard {
     }
 }
 
-impl<FP: FieldParameters> Serialize for MontyField31<FP> {
+impl<FP: MontyParameters + FieldParameters> Serialize for MontyField31<FP> {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_u32(self.as_canonical_u32())
     }
 }
 
-impl<'de, FP: FieldParameters> Deserialize<'de> for MontyField31<FP> {
+impl<'de, FP: MontyParameters + FieldParameters> Deserialize<'de> for MontyField31<FP> {
     fn deserialize<D: Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
         let val = u32::deserialize(d)?;
         Ok(MontyField31::from_canonical_u32(val))

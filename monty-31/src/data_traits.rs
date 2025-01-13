@@ -2,6 +2,7 @@ use core::fmt::Debug;
 use core::hash::Hash;
 
 use p3_field::{Field, FieldAlgebra};
+use serde::{Deserialize, Serialize};
 
 use crate::MontyField31;
 
