@@ -27,8 +27,8 @@ pub struct Poseidon2InternalLayerMonty31<
 /// The external layers of the Poseidon2 permutation for Monty31 fields.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(bound(
-    serialize = "MontyField31<MP>: Serialize, [MontyField31<MP>; WIDTH]: Serialize",
-    deserialize = "MontyField31<MP>: Deserialize<'de>, [MontyField31<MP>; WIDTH]: Deserialize<'de>"
+    serialize = "ExternalLayerConstants<MontyField31<MP>, WIDTH>: Serialize",
+    deserialize = "ExternalLayerConstants<MontyField31<MP>, WIDTH>: Deserialize<'de>"
 ))]
 pub struct Poseidon2ExternalLayerMonty31<MP: MontyParameters, const WIDTH: usize> {
     pub(crate) external_constants: ExternalLayerConstants<MontyField31<MP>, WIDTH>,
