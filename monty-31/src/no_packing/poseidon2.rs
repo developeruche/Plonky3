@@ -12,8 +12,8 @@ use crate::{FieldParameters, InternalLayerBaseParameters, MontyField31, MontyPar
 /// The internal layers of the Poseidon2 permutation for Monty31 fields.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(bound(
-    serialize = "MontyField31<MP>: Serialize, InternalLayerBaseParameters<MP, WIDTH>: Serialize",
-    deserialize = "MontyField31<MP>: Deserialize<'de>, InternalLayerBaseParameters<MP, WIDTH>: Deserialize<'de>"
+    serialize = "MontyField31<MP>: Serialize, InternalLayerBaseParameters<MP, WIDTH>: Serialize, MP: Serialize, ILP: Serialize",
+    deserialize = "MontyField31<MP>: Deserialize<'de>, InternalLayerBaseParameters<MP, WIDTH>: Deserialize<'de>, MP: Deserialize<'de>, ILP: Deserialize<'de>"
 ))]
 pub struct Poseidon2InternalLayerMonty31<
     MP: MontyParameters,
@@ -27,8 +27,8 @@ pub struct Poseidon2InternalLayerMonty31<
 /// The external layers of the Poseidon2 permutation for Monty31 fields.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(bound(
-    serialize = "ExternalLayerConstants<MontyField31<MP>, WIDTH>: Serialize",
-    deserialize = "ExternalLayerConstants<MontyField31<MP>, WIDTH>: Deserialize<'de>"
+    serialize = "MontyField31<MP>: Serialize, ExternalLayerConstants<MontyField31<MP>, WIDTH>: Serialize, MP: Serialize",
+    deserialize = "MontyField31<MP>: Deserialize<'de>, ExternalLayerConstants<MontyField31<MP>, WIDTH>: Deserialize<'de>, MP: Deserialize<'de>"
 ))]
 pub struct Poseidon2ExternalLayerMonty31<MP: MontyParameters, const WIDTH: usize> {
     pub(crate) external_constants: ExternalLayerConstants<MontyField31<MP>, WIDTH>,
