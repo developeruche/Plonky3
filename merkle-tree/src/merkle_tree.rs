@@ -49,22 +49,24 @@ impl<F: Clone + Send + Sync, W: Clone, M: Matrix<F>, const DIGEST_ELEMS: usize>
         assert!(!leaves.is_empty(), "No matrices given?");
 
         assert_eq!(P::WIDTH, PW::WIDTH, "Packing widths must match");
+        
+        // check height property
+        assert!(
+            leaves
+                .iter()
+                .map(|m| m.height())
+                .sorted()
+                .tuple_windows()
+                .all(|(curr, next)| curr == next
+                    || curr.next_power_of_two() != next.next_power_of_two()),
+            "matrix heights that round up to the same power of two must be equal"
+        );
 
         let mut leaves_largest_first = leaves
             .iter()
             .sorted_by_key(|l| Reverse(l.height()))
             .peekable();
 
-        // check height property
-        assert!(
-            leaves_largest_first
-                .clone()
-                .map(|m| m.height())
-                .tuple_windows()
-                .all(|(curr, next)| curr == next
-                    || curr.next_power_of_two() != next.next_power_of_two()),
-            "matrix heights that round up to the same power of two must be equal"
-        );
 
         let max_height = leaves_largest_first.peek().unwrap().height();
         let tallest_matrices = leaves_largest_first
