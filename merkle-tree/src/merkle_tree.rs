@@ -103,6 +103,15 @@ impl<F: Clone + Send + Sync, W: Clone, M: Matrix<F>, const DIGEST_ELEMS: usize>
         }
     }
 
+
+    pub fn from_parts(leaves: Vec<M>, digest_layers: Vec<Vec<[W; DIGEST_ELEMS]>>) -> Self {
+        Self {
+            leaves,
+            digest_layers,
+            _phantom: PhantomData,
+        }
+    }
+
     #[must_use]
     pub fn root(&self) -> Hash<F, W, DIGEST_ELEMS>
     where
